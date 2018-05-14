@@ -26,11 +26,6 @@ import me.wisetim.contacts.util.HanziToPinyinUtil;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * 联系人javabean
- *
- * @author kymjs (http://www.kymjs.com/) on 9/16/15.
- */
 public class Contact implements Comparable<Contact>,Parcelable {
     private String name;
     private String phoneNumber;

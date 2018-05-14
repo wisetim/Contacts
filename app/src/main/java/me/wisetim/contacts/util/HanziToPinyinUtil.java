@@ -22,9 +22,6 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Locale;
 
-/**
- * @author kymjs (http://www.kymjs.com/) on 9/17/15.
- */
 public class HanziToPinyinUtil {
     private static final String TAG = "HanziToPinyinUtil";
 

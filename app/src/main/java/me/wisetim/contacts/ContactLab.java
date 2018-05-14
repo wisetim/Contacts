@@ -4,11 +4,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import me.wisetim.contacts.bean.Contact;
 import me.wisetim.contacts.database.ContactBaseHelper;
 import me.wisetim.contacts.database.ContactCursorWrapper;
-import me.wisetim.contacts.database.ContactDbSchema;
+import me.wisetim.contacts.database.ContactDbSchema.ContactTable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,24 +22,9 @@ public class ContactLab {
 
     private Context mContext;
     private SQLiteDatabase mDatabase;
-    private static List<Contact> mContacts;
+    private boolean mIsModified = true;
+    private List<Contact> mContacts = new ArrayList<>();
 
-    static {
-        mContacts = new ArrayList<>();
-        Contact contact1 = new Contact();
-        contact1.setName("张三");
-        mContacts.add(contact1);
-
-        Contact contact2 = new Contact();
-        contact2.setName("李四");
-        mContacts.add(contact2);
-
-        Contact contact3 = new Contact();
-        contact3.setName("Li Wu");
-        mContacts.add(contact3);
-
-        Collections.sort(mContacts);
-    }
 
     public static ContactLab get(Context context) {
         if (sContactLab == null) {
@@ -52,80 +39,76 @@ public class ContactLab {
     }
 
     public void addContact(Contact c) {
-        mContacts.add(c);
-        Collections.sort(mContacts);
-//        ContentValues values = getContentValues(c);
-//
-//        mDatabase.insert(ContactTable.NAME, null, values);
+        ContentValues values = getContentValues(c);
+        mDatabase.insert(ContactTable.NAME, null, values);
+        mIsModified = true;
     }
 
     public void deleteContact(Contact Contact) {
         mDatabase.delete(
-                ContactDbSchema.ContactTable.NAME,
-                ContactDbSchema.ContactTable.Cols.CONTACT_ID + " = ?",
+                ContactTable.NAME, ContactTable.Cols.CONTACT_ID + " = ?",
                 new String[]{Contact.getId().toString()}
         );
+        mIsModified = true;
     }
 
     public List<Contact> getContacts() {
-
-//        ContactCursorWrapper cursor = queryContacts(null, null);
-//
-//        try {
-//            cursor.moveToFirst();
-//            while (!cursor.isAfterLast()) {
-//                Contacts.add(cursor.getContact());
-//                cursor.moveToNext();
-//            }
-//        } finally {
-//            cursor.close();
-//        }
+        //若表未修改过，则直接返回上一次查询的结果集
+        //默认值为true，则首次请求必查询一次数据酷
+        if (!mIsModified) return mContacts;
+        mContacts = new ArrayList<>();
+        try (ContactCursorWrapper cursor
+                     = queryContacts(null, null)) {
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                mContacts.add(cursor.getContact());
+                cursor.moveToNext();
+            }
+        }
+        Collections.sort(mContacts);
+        mIsModified = false;
 
         return mContacts;
     }
 
     public Contact getContact(UUID id) {
-        for (Contact contact : mContacts) {
-            if (contact.getId().equals(id)) return contact;
-        }
-        return null;
+        ContactCursorWrapper cursor = queryContacts(
+                ContactTable.Cols.CONTACT_ID + " = ?",
+                new String[]{id.toString()}
+        );
 
-//        ContactCursorWrapper cursor = queryContacts(
-//                ContactTable.Cols.CONTACT_ID + " = ?",
-//                new String[]{id.toString()}
-//        );
-//
-//        try {
-//            if (cursor.getCount() == 0) return null;
-//
-//            cursor.moveToFirst();
-//            return cursor.getContact();
-//        } finally {
-//            cursor.close();
-//        }
+        try {
+            if (cursor.getCount() == 0) return null;
+
+            cursor.moveToFirst();
+            return cursor.getContact();
+        } finally {
+            cursor.close();
+        }
     }
 
     public void updateContact(Contact contact) {
         String uuidString = contact.getId().toString();
         ContentValues values = getContentValues(contact);
 
-        mDatabase.update(ContactDbSchema.ContactTable.NAME, values,
-                ContactDbSchema.ContactTable.Cols.CONTACT_ID + " = ?",
+        mDatabase.update(ContactTable.NAME, values,
+                ContactTable.Cols.CONTACT_ID + " = ?",
                 new String[]{uuidString});
+        mIsModified = true;
     }
 
     private static ContentValues getContentValues(Contact contact) {
         ContentValues values = new ContentValues();
-        values.put(ContactDbSchema.ContactTable.Cols.CONTACT_ID, contact.getId().toString());
-        values.put(ContactDbSchema.ContactTable.Cols.CONTACT_NAME, contact.getName());
-        values.put(ContactDbSchema.ContactTable.Cols.CONTACT_PHONE, contact.getPhoneNumber());
+        values.put(ContactTable.Cols.CONTACT_ID, contact.getId().toString());
+        values.put(ContactTable.Cols.CONTACT_NAME, contact.getName());
+        values.put(ContactTable.Cols.CONTACT_PHONE, contact.getPhoneNumber());
 
         return values;
     }
 
     private ContactCursorWrapper queryContacts(String whereClause, String[] whereArgs) {
         Cursor cursor = mDatabase.query(
-                ContactDbSchema.ContactTable.NAME,
+                ContactTable.NAME,
                 null,
                 whereClause,
                 whereArgs,
