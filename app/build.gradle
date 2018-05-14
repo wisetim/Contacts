@@ -1,0 +1,36 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
+    defaultConfig {
+        applicationId 'me.wisetim'
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        test.root 'src/test/'
+        test.java.srcDirs 'src/test/java'
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:27+'
+    compile 'com.android.support:design:27.1.1'
+    compile 'org.kymjs.kjframe:kjframe:2.4.6.2'
+    compile 'com.jakewharton:butterknife:8.8.1'
+    compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    testCompile 'junit:junit:4.12'
+}

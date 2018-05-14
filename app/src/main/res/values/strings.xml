@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Contacts</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_float_button">FloatButtonActivity</string>
+    <string name="contact_name">联系人姓名</string>
+    <string name="contact_phone_number">联系人电话</string>
+    <string name="add_contact_done">完成</string>
+    <string name="contact_num">%1$d 位联系人</string>
+    <string name="add_contact">添加联系人</string>
+    <string name="search">搜索</string>
+</resources>
