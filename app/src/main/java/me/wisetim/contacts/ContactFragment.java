@@ -16,7 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import org.kymjs.contacts.R;
+import me.wisetim.R;
 import me.wisetim.contacts.bean.Contact;
 
 import java.util.UUID;
@@ -60,7 +60,6 @@ public class ContactFragment extends Fragment {
         UUID contactId = null;
         if (args != null) {
             contactId = (UUID) args.getSerializable(ARG_CONTACT_ID);
-
         }
         if (contactId != null) {
             mContact = ContactLab.get(getActivity()).getContact(contactId);
@@ -95,7 +94,7 @@ public class ContactFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_item_done:
+            case R.id.menu_item_delete:
                 if (getActivity() != null) {
                     Contact newContact = new Contact(mContact.getId());
                     newContact.setName(mContactName.getText().toString());
@@ -117,10 +116,6 @@ public class ContactFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         mUnbinder.unbind();
-    }
-
-    private void sendResult(int resultCode, Contact contact) {
-
     }
 
     @OnTextChanged(R.id.contact_name)

@@ -8,11 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
+import android.widget.CheckedTextView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
-import org.kymjs.contacts.R;
+
+import me.wisetim.R;
 import me.wisetim.contacts.bean.Contact;
 
 import java.util.ArrayList;
@@ -20,16 +21,22 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import me.wisetim.contacts.widget.ContactListItemView;
 
 
 public class ContactAdapter extends ArrayAdapter<Contact>
-        implements AbsListView.OnScrollListener,SectionIndexer {
+        implements AbsListView.OnScrollListener, SectionIndexer {
+
+    private int mLayoutId;
     private AbsListView.OnScrollListener listener;
 
-    public ContactAdapter(@NonNull Context context, int resource,
-                          @NonNull List<Contact> contacts) {
-        super(context, resource, contacts);
+    ContactAdapter(@NonNull Context context,
+                   int resource,
+                   @NonNull List<Contact> objects) {
+        super(context, resource, objects);
+        mLayoutId = resource;
     }
+
 
     public void addOnScrollListener(AbsListView.OnScrollListener l) {
         this.listener = l;
@@ -43,6 +50,7 @@ public class ContactAdapter extends ArrayAdapter<Contact>
         addAll(contacts);
         this.notifyDataSetChanged();
     }
+
 
     @Override
     public Object[] getSections() {
@@ -91,47 +99,42 @@ public class ContactAdapter extends ArrayAdapter<Contact>
         View view;
         ContactHolder holder;
         if (convertView == null) {
-            view = LayoutInflater.from(getContext()).inflate(R.layout.item_list_contact, null);
+            view = LayoutInflater.from(getContext()).inflate(mLayoutId, null);
             holder = new ContactHolder(view);
             view.setTag(holder);
         } else {
             view = convertView;
             holder = (ContactHolder) view.getTag();
         }
-        holder.bindContact(getItem(position), position);
+        holder.bindContact(position);
         return view;
     }
 
     class ContactHolder {
-        @BindView(R.id.contact_head)
-        ImageView mContactHead;
-        @BindView(R.id.contact_title)
-        TextView mContactName;
-        @BindView(R.id.contact_catalog)
-        TextView mLetter;
-        @BindView(R.id.contact_line)
-        TextView mLine;
+        Contact mContact;
+
+        @BindView(R.id.contact_list_item_view)
+        ContactListItemView mItem;
 
         ContactHolder(View view) {
             ButterKnife.bind(this, view);
         }
 
-        void bindContact(Contact contact, int position) {
-            mContactName.setText(contact.getName());
+        void bindContact(int position) {
+            mContact = getItem(position);
+            if (mContact == null) return;
+            mItem.setContactNameText(mContact.getName());
 
             if (position == 0) {
-                mLetter.setVisibility(View.VISIBLE);
-                mLetter.setText(String.valueOf(contact.getFirstChar()));
-                mLine.setVisibility(View.VISIBLE);
+                mItem.setCatalogAndLineVisibility(View.VISIBLE);
+                mItem.setCatalogLetter(String.valueOf(mContact.getFirstChar()));
             } else {
                 Contact prevData = getItem(position - 1);
-                if (contact.getFirstChar() != prevData.getFirstChar()) {
-                    mLetter.setVisibility(View.VISIBLE);
-                    mLetter.setText(String.valueOf(contact.getFirstChar()));
-                    mLine.setVisibility(View.VISIBLE);
+                if (mContact.getFirstChar() != prevData.getFirstChar()) {
+                    mItem.setCatalogAndLineVisibility(View.VISIBLE);
+                    mItem.setCatalogLetter(String.valueOf(mContact.getFirstChar()));
                 } else {
-                    mLetter.setVisibility(View.GONE);
-                    mLine.setVisibility(View.GONE);
+                    mItem.setCatalogAndLineVisibility(View.GONE);
                 }
             }
         }

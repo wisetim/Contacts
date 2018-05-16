@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<me.wisetim.contacts.widget.ContactListItemView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/contact_list_item_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    app:contactBackground="#ffffff"
+    app:checkMark="?android:attr/listChoiceIndicatorMultiple"
+    app:contactIcon="@drawable/ic_contact_name"
+    app:contactNameText="联系人姓名"
+    app:textColor="#474747"
+    app:itemMode="multi_choice">
+</me.wisetim.contacts.widget.ContactListItemView>

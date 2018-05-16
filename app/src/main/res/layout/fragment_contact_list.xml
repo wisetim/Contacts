@@ -47,6 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:cacheColorHint="@android:color/transparent"
+            android:choiceMode="multipleChoiceModal"
             android:divider="@drawable/bg_cut_line"
             android:dividerHeight="1px"
             android:fadingEdge="none"

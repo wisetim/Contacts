@@ -7,7 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 
-import org.kymjs.contacts.R;
+import me.wisetim.R;
 import me.wisetim.contacts.util.StatusBarUtil;
 
 /**

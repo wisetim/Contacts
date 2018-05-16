@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ContactListItemView">
+        <attr name="contactNameText" format="string"/>
+        <attr name="textColor" format="color"/>
+        <attr name="contactBackground" format="color"/>
+        <attr name="checkMark" format="reference"/>
+        <attr name="contactIcon" format="reference"/>
+        <attr name="itemMode" format="enum">
+            <enum name="normal" value="0"/>
+            <enum name="multi_choice" value="1"/>
+        </attr>
+    </declare-styleable>
+
+    <color name="catalogBackground">#ebebeb</color>
+    <color name="catalogTextColor">#A4A4A4</color>
+</resources>
