@@ -23,7 +23,7 @@
         <activity
             android:name="me.wisetim.contacts.ContactActivity"
             android:parentActivityName="me.wisetim.contacts.ContactListActivity"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan">
         </activity>
     </application>

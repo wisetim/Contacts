@@ -20,7 +20,6 @@ import java.util.UUID;
 public class ContactLab {
     private static ContactLab sContactLab;
 
-    private Context mContext;
     private SQLiteDatabase mDatabase;
     private boolean mIsModified = true;
     private List<Contact> mContacts = new ArrayList<>();
@@ -34,8 +33,8 @@ public class ContactLab {
     }
 
     private ContactLab(Context context) {
-        mContext = context.getApplicationContext();
-        mDatabase = new ContactBaseHelper(mContext).getWritableDatabase();
+        Context applicationContext = context.getApplicationContext();
+        mDatabase = new ContactBaseHelper(applicationContext).getWritableDatabase();
     }
 
     public void addContact(Contact c) {
@@ -72,28 +71,25 @@ public class ContactLab {
     }
 
     public Contact getContact(UUID id) {
-        ContactCursorWrapper cursor = queryContacts(
+
+        try (ContactCursorWrapper cursor = queryContacts(
                 ContactTable.Cols.CONTACT_ID + " = ?",
                 new String[]{id.toString()}
-        );
-
-        try {
+        )) {
             if (cursor.getCount() == 0) return null;
 
             cursor.moveToFirst();
             return cursor.getContact();
-        } finally {
-            cursor.close();
         }
     }
 
     public void updateContact(Contact contact) {
-        String uuidString = contact.getId().toString();
+        String contactId = contact.getId().toString();
         ContentValues values = getContentValues(contact);
 
         mDatabase.update(ContactTable.NAME, values,
                 ContactTable.Cols.CONTACT_ID + " = ?",
-                new String[]{uuidString});
+                new String[]{contactId});
         mIsModified = true;
     }
 

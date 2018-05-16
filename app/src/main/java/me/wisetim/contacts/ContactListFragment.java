@@ -1,14 +1,14 @@
 package me.wisetim.contacts;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -27,15 +27,18 @@ import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.OnItemClick;
+import butterknife.OnTextChanged;
 import butterknife.Unbinder;
 import me.wisetim.R;
 import me.wisetim.contacts.bean.Contact;
 import me.wisetim.contacts.widget.SideBar;
 
 public class ContactListFragment extends Fragment
-        implements SideBar.OnTouchingLetterChangedListener, TextWatcher {
+        implements SideBar.OnTouchingLetterChangedListener {
     static final int REQUEST_NEW_CONTACT = 0;
+    static final int REQUEST_MODIFY_CONTACT = 1;
 
     @BindView(R.id.contact_list_view)
     ListView mListView;
@@ -46,7 +49,7 @@ public class ContactListFragment extends Fragment
     @BindView(R.id.contact_search_input)
     EditText mSearchInput;
     @BindView(R.id.contact_list_fab)
-    FloatingActionButton fab;
+    FloatingActionButton mFloatingActionButton;
     TextView mFooterView;
 
     private Unbinder mUnbinder;
@@ -64,25 +67,17 @@ public class ContactListFragment extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_contact_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_contact_list,
+                container, false);
         mUnbinder = ButterKnife.bind(this, view);
 
         mSideBar.setTextView(mDialog);
         mSideBar.setOnTouchingLetterChangedListener(this);
 
-        mSearchInput.addTextChangedListener(this);
-
-        mFooterView = (TextView) View.inflate(getActivity(), R.layout.footer_contact_list_count, null);
+        mFooterView = (TextView) View.inflate(getActivity(),
+                R.layout.footer_contact_list_count, null);
         mListView.addFooterView(mFooterView);
         mListView.setMultiChoiceModeListener(new MultiChoiceModeCallback());
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), ContactActivity.class);
-                startActivityForResult(intent, REQUEST_NEW_CONTACT);
-            }
-        });
 
         List<Contact> contacts = ContactLab.get(getActivity()).getContacts();
         updateList(contacts, false);
@@ -111,6 +106,11 @@ public class ContactListFragment extends Fragment
             Contact contact = data.getParcelableExtra(ContactFragment.EXTRA_CONTACT);
             ContactLab lab = ContactLab.get(getActivity());
             lab.addContact(contact);
+            updateList(lab.getContacts(), false);
+        } else if (requestCode == REQUEST_MODIFY_CONTACT) {
+            Contact contact = data.getParcelableExtra(ContactFragment.EXTRA_CONTACT);
+            ContactLab lab = ContactLab.get(getActivity());
+            lab.updateContact(contact);
             updateList(lab.getContacts(), false);
         }
     }
@@ -144,6 +144,17 @@ public class ContactListFragment extends Fragment
         mFooterView.setText(getString(R.string.contact_num, contacts.size()));
     }
 
+
+    private void deleteContacts() {
+        SparseBooleanArray array = mListView.getCheckedItemPositions();
+        ContactLab contactLab = ContactLab.get(getActivity());
+        List<Contact> contacts = contactLab.getContacts();
+        for (int i = 0; i < array.size(); ++i) {
+            contactLab.deleteContact(contacts.get(array.keyAt(i)));
+        }
+        updateList(contacts, false);
+    }
+
     @Override
     public void onTouchingLetterChanged(String s) {
         int position = 0;
@@ -155,27 +166,6 @@ public class ContactListFragment extends Fragment
         } else if (s.contains("#")) {
             mListView.setSelection(0);
         }
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        List<Contact> contacts = ContactLab.get(getActivity()).getContacts();
-        List<Contact> contactsCopy = new ArrayList<>(contacts);
-        String lowerS = s.toString().toLowerCase();
-        for (Contact data : contacts) {
-            if (!data.getName().contains(s) && !data.getPinyin().contains(lowerS)) {
-                contactsCopy.remove(data);
-            }
-        }
-        updateList(contactsCopy, true);
-    }
-
-    @Override
-    public void afterTextChanged(Editable s) {
     }
 
     private class MultiChoiceModeCallback implements ListView.MultiChoiceModeListener {
@@ -201,20 +191,20 @@ public class ContactListFragment extends Fragment
         }
 
         @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+        public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
             if (item.getItemId() == R.id.menu_item_delete) {
-                SparseBooleanArray array = mListView.getCheckedItemPositions();
-                List<Contact> contactsToDel = new ArrayList<>();
-                ContactLab contactLab = ContactLab.get(getActivity());
-                List<Contact> contacts = contactLab.getContacts();
-                for (int i = 0; i < array.size(); ++i) {
-                    contactsToDel.add(contacts.get(array.keyAt(i)));
-                }
-                for (Contact contact : contactsToDel) {
-                    contactLab.deleteContact(contact);
-                }
-                updateList(contacts, false);
-                mode.finish();
+                new AlertDialog.Builder(getActivity())
+                        .setMessage("确认删除联系人？")
+                        .setPositiveButton("删除",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        deleteContacts();
+                                        mode.finish();
+                                    }
+                                })
+                        .setNegativeButton("取消", null)
+                        .create().show();
             }
             return true;
         }
@@ -241,6 +231,26 @@ public class ContactListFragment extends Fragment
     public void onContactListItemClicked(View view) {
         ContactAdapter.ContactHolder holder = (ContactAdapter.ContactHolder) view.getTag();
         Intent intent = ContactActivity.newIntent(getContext(), holder.mContact.getId());
-        Objects.requireNonNull(getActivity()).startActivity(intent);
+        Objects.requireNonNull(getActivity()).startActivityForResult(intent,
+                REQUEST_MODIFY_CONTACT);
+    }
+
+    @OnTextChanged(R.id.contact_search_input)
+    public void onSearchInputChanged(CharSequence s) {
+        List<Contact> contacts = ContactLab.get(getActivity()).getContacts();
+        List<Contact> contactsCopy = new ArrayList<>(contacts);
+        String lowerS = s.toString().toLowerCase();
+        for (Contact data : contacts) {
+            if (!data.getName().contains(s) && !data.getPinyin().contains(lowerS)) {
+                contactsCopy.remove(data);
+            }
+        }
+        updateList(contactsCopy, true);
+    }
+
+    @OnClick(R.id.contact_list_fab)
+    public void onFloatingActionButtonClicked() {
+        Intent intent = new Intent(getActivity(), ContactActivity.class);
+        startActivityForResult(intent, REQUEST_NEW_CONTACT);
     }
 }

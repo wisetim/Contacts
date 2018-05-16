@@ -3,8 +3,14 @@ package me.wisetim.contacts;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.view.MenuItem;
+import android.widget.Toast;
+import android.widget.Toolbar;
 
 import java.util.UUID;
+
+import me.wisetim.R;
 
 public class ContactActivity extends SingleFragmentActivity {
     private static final String EXTRA_CONTACT_ID
@@ -25,5 +31,4 @@ public class ContactActivity extends SingleFragmentActivity {
             return ContactFragment.newInstance(contactId);
         }
     }
-
 }
